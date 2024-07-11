@@ -19,3 +19,4 @@ TODO:
 - Examples
 - Documentation
 - Make Code Work Good
+- Organise Code Properly
