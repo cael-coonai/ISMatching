@@ -20,3 +20,4 @@ TODO:
 - Documentation
 - Make Code Work Good
 - Organise Code Properly
+- Replace all internal types with numpy types
