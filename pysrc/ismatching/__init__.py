@@ -1,4 +1,4 @@
-from .ismatching import *
+from ismatching import ismatching
 from numpy.typing import NDArray
 import numpy as np
 from scipy.stats import binom, sem
@@ -8,11 +8,11 @@ from pymatching import Matching
 
 def generate_errors(
     num_qubits: int,
-    num_samples: Union[int,NDArray[np.uint64]]=1,
-    error_rate: Union[float,NDArray[np.float64]]=0.5,
+    num_samples: int=1,
+    error_rate: float=0.5,
     num_threads: int=0,
-    error_weight: Optional[Union[int,NDArray[np.int64]]]=None,
-    rng_seed: Optional[Union[int,NDArray[np.int64]]]=None,
+    error_weight: Optional[int]=None,
+    rng_seed: Optional[int]=None,
 ) -> NDArray[np.uint8]:
     
     return ismatching._generate_errors(
@@ -49,7 +49,7 @@ def determine_logical_errors(
     predictions: NDArray[np.uint8],
     num_threads: int=0 
 ) -> NDArray[np.uint8]:
-    # TODO: Make safe and documemnt
+    # TODO: Make safe and document
     return ismatching._determine_logical_errors(errors, predictions, num_threads)
 
 
@@ -75,9 +75,9 @@ def monte_carlo(
     num_threads: int=0,
     matching: Optional[Matching]=None,
     rng_seed: Optional[int]=None,
-) -> Tuple[float, float]:
+) -> Tuple[np.float64, np.float64]:
 
-    matching = Matching(parity_check_matrix) if matching == None else matching
+    matching = Matching(parity_check_matrix) if matching is None else matching
     
     errors = generate_errors_from_check(
         parity_check_matrix,
@@ -95,7 +95,7 @@ def monte_carlo(
 
     predictions = matching.decode_batch(syndromes)
     # TODO: Reconsider assertion
-    assert(isinstance(predictions, np.ndarray))
+    assert type(predictions) is np.ndarray
 
     failures = determine_logical_errors(errors,predictions,num_threads)
 
@@ -103,14 +103,17 @@ def monte_carlo(
 
 
 class _WeightSamplingEntry:
-    num_samples: np.uint64
     mean: np.float64
     stddev: np.float64
+    num_samples: np.uint64
 
-    def __init__(self, num_samples:np.uint64, mean:np.float64, stddev:np.float64):
-        self.num_samples = num_samples
+    def __init__(self, mean:np.float64, stddev:np.float64, num_samples:np.uint64):
         self.mean = mean
         self.stddev = stddev
+        self.num_samples = num_samples
+
+    def get_vals(self) -> Tuple[np.float64, np.float64, np.uint64]:
+        return self.mean, self.stddev, self.num_samples
 
     @staticmethod
     def zero():
@@ -129,12 +132,14 @@ class _WeightSamplingEntry:
         diff_num_samples = total_num_samples - self.num_samples
         return diff_num_samples if diff_num_samples > 0 else np.uint64(0)
 
+    def stderr(self) -> np.float64:
+        return np.float64(0) if self.num_samples == 0 else self.stddev/np.sqrt(self.num_samples)
 
     def stats(self) -> Tuple[np.float64, np.float64]:
         """
         Returns a tuple containing the mean and standard error.
         """
-        return (self.mean, self.stddev/np.sqrt(self.num_samples))
+        return (self.mean, self.stderr())
 
 class ImportanceSampling:
     """
@@ -145,16 +150,19 @@ class ImportanceSampling:
     def __init__(
         self,
         parity_check_matrix: NDArray[np.uint8],
-        # initial_num_samples: int,
+        initial_num_samples: int=int(1e5),
+        default_error_threshold: float=0.01,
         code_distance: Optional[int]=None,
         matching: Optional[Matching]=None,
         num_threads: int=0,
         rng_seed: Optional[int]=None, # TODO: Replace to allow input of RNG directly
     ):
         self._matching = Matching(parity_check_matrix) \
-            if matching == None else matching
+            if matching is None else matching
         self._parity_check_matrix = parity_check_matrix
         self.num_threads = num_threads
+        self._initial_num_samples = initial_num_samples
+        self._default_plog_error_threshold = default_error_threshold
         self._rng = np.random.default_rng(rng_seed)
         self._data: Dict[int, _WeightSamplingEntry] = dict()
         self._data[0] = _WeightSamplingEntry.zero()
@@ -166,15 +174,10 @@ class ImportanceSampling:
     def num_qubits(self) -> int:
         return self._matching.num_nodes
     
+    
+    def sample_weight(self, error_weight: int, num_samples: int) -> None:
 
-    def add_weight(
-        self,
-        error_weight: int,
-        num_samples: int,
-        threshold_err: Optional[float]=None
-    ) -> None:
-
-        num_samples = np.uint64(num_samples)
+        print(f"Sampling {error_weight}, {num_samples}", flush=True)
 
         errors = generate_errors(
             self.num_qubits(),
@@ -191,15 +194,24 @@ class ImportanceSampling:
         )
 
         predictions = self._matching.decode_batch(syndromes)
-        assert(isinstance(predictions, np.ndarray))
+        assert type(predictions) is np.ndarray
 
         failures = determine_logical_errors(errors,predictions,self.num_threads)
 
-        self._data[error_weight] = _WeightSamplingEntry(
-            num_samples,
-            np.average(failures),
-            np.std(failures, ddof=1)
-        )
+        if error_weight in self._data:
+            self._data[error_weight].add_data(
+                np.uint64(num_samples),
+                np.average(failures),
+                np.std(failures)
+            )
+
+        else:
+            self._data[error_weight] = _WeightSamplingEntry(
+                np.average(failures),
+                np.std(failures),
+                np.uint64(num_samples),
+            )
+
     
     def get_weights(self) -> List[Tuple[int, Tuple[np.float64, np.float64]]]:
         """
@@ -211,35 +223,64 @@ class ImportanceSampling:
         return weights
 
 
+    # Note to self: finish implementing dynamic sampling
 
     def _get_p_log_bound_by_weight(
             self,
             weight: int,
             p_phys: float,
-            num_samples: int,
+            p_log_error_threshold: Optional[float],
             weight_prob_threshold: Optional[float],
+            num_samples: Optional[int],
      ) -> Tuple[Tuple[np.float64, np.float64], np.float64]:
 
-        if weight in self._data.keys():
-            p_log, p_log_err = self._data[weight].stats()
-            return ((p_log,p_log),p_log_err)
+        if p_log_error_threshold is None:
+            p_log_error_threshold = self._default_plog_error_threshold
+        if num_samples is None:
+            num_samples = self._initial_num_samples
 
-        elif weight_prob_threshold != None and (
-                binom.pmf(weight,self.num_qubits(),p_phys)>=weight_prob_threshold
-            ).any():
-            self.add_weight(weight, num_samples)
-            p_log, p_log_err = self._data[weight].stats()
-            return ((p_log,p_log),p_log_err)
+        num_weights = self.num_qubits()
+        binom_pmf = binom.pmf(weight, num_weights, p_phys)
+        w_error_theshold = np.inf \
+            if ((binom_pmf**2)) <= 1e-300 \
+            else np.sqrt((p_log_error_threshold**2)/((binom_pmf**2)*num_weights))
+
+        if weight in self._data.keys():
+            p_log, w_p_log_err = self._data[weight].stats()
+            while w_p_log_err >= w_error_theshold:
+                _, dev, current_num_samples = self._data[weight].get_vals()
+                num_samples_diff = np.uint64(np.ceil(
+                    (binom_pmf**2) * (dev**2) * num_weights * (1 / (p_log_error_threshold**2))
+                )) - current_num_samples
+                assert(num_samples_diff > 0)
+                self.sample_weight(weight, num_samples_diff)
+                p_log, w_p_log_err = self._data[weight].stats()
+            return ((p_log,p_log),w_p_log_err)
+
+        elif weight_prob_threshold is not None and binom_pmf >= weight_prob_threshold:
+            self.sample_weight(weight, num_samples)
+            p_log, w_p_log_err = self._data[weight].stats()
+            while w_p_log_err >= w_error_theshold:
+                _, dev, current_num_samples = self._data[weight].get_vals()
+                num_samples_diff = np.uint64(np.ceil(
+                    (binom_pmf**2) * (dev**2) * num_weights * (1 / (p_log_error_threshold**2))
+                )) - current_num_samples
+                assert(num_samples_diff > 0)
+                assert(num_samples_diff < 1e10)
+                self.sample_weight(weight, num_samples_diff)
+                p_log, w_p_log_err = self._data[weight].stats()
+            return ((p_log,p_log),w_p_log_err)
 
         else:
-            return ((np.float64(0), np.float64(1)), np.float64())
+            return (np.float64(0), np.float64(1)), np.float64()
 
 
     def p_log_bound(
         self,
         p_phys: float,
+        p_log_error_threshold: Optional[float]=None,
         weight_prob_threshold: Optional[float]=None,
-        num_samples: int=1,
+        num_samples: Optional[int]=None,
     ) : #idk what this returns
         p_log_min, p_log_max, p_log_err_to2 = (0,0,0)
         n = self.num_qubits()
@@ -247,12 +288,13 @@ class ImportanceSampling:
             (low, high), err = self._get_p_log_bound_by_weight(
                 weight,
                 p_phys,
+                p_log_error_threshold,
+                weight_prob_threshold,
                 num_samples,
-                weight_prob_threshold
             )
             p_log_min += binom.pmf(weight,self.num_qubits(),p_phys) * low
             p_log_max += binom.pmf(weight,self.num_qubits(),p_phys) * high
-            p_log_err_to2+=(binom.pmf(weight,self.num_qubits(),p_phys) * err)**2
+            p_log_err_to2 += (binom.pmf(weight,self.num_qubits(),p_phys)*err)**2
         p_log_err = np.sqrt(p_log_err_to2)
-        return ((p_log_min, p_log_max), p_log_err)
+        return (p_log_min, p_log_max), p_log_err
 
