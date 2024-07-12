@@ -26,3 +26,4 @@ TODO:
 - Document internals
   - Python
   - Rust
+- Use bit packing to save on memory
