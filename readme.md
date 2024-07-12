@@ -21,3 +21,8 @@ TODO:
 - Make Code Work Good
 - Organise Code Properly
 - Replace all internal types with numpy types
+- Rename function parameters
+- Document external api
+- Document internals
+  - Python
+  - Rust
