@@ -223,7 +223,6 @@ class ImportanceSampling:
         return weights
 
 
-    # Note to self: finish implementing dynamic sampling
 
     def _get_p_log_bound_by_weight(
             self,
