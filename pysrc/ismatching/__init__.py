@@ -143,8 +143,8 @@ class _WeightSamplingEntry:
 
 class ImportanceSampling:
     """
-    For each weight (key) the accompanying logical error rate and standard error
-    of that rate is stored.
+    For each weight (key) the accompanying logical error rate std_err and the num
+    samples taken for that weight.
     """
 
     def __init__(
