@@ -27,3 +27,4 @@ TODO:
   - Python
   - Rust
 - Use bit packing to save on memory
+- Accept Stim Circuits
