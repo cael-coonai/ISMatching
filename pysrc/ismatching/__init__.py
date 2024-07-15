@@ -124,7 +124,11 @@ class _WeightSamplingEntry:
 
     @staticmethod
     def zero():
-        return _WeightSamplingEntry(float64(0), float64(0), uint64(0))
+        return _WeightSamplingEntry(float64(0), float64(0), uint64(1))
+
+    # @staticmethod
+    # def not_sampled():
+    #     return _WeightSamplingEntry(float64(0.5), float64(0.5), uint64(2))
 
     def add_data(
         self,
@@ -148,7 +152,8 @@ class _WeightSamplingEntry:
         return diff_num_samples if diff_num_samples > 0 else uint64(0)
 
     def stderr(self) -> float64:
-        return float64(0) if self.num_samples == 0 else self.stddev/np.sqrt(self.num_samples)
+        # return float64(0) if self.num_samples == 0 else self.stddev/np.sqrt(self.num_samples)
+        return self.stddev/np.sqrt(self.num_samples)
 
     def stats(self) -> Tuple[float64, float64]:
         """
@@ -176,8 +181,7 @@ class ImportanceSampling:
         self,
         parity_check_matrix: NDArray[uint8], ### TODO: Derive parity check matrix from Matching
         initial_num_samples: Union[int, uint64] = int(1e5),
-        default_error_threshold: Union[float, float64] = 1e-2,
-        default_weight_probability_threshold: Union[float, float64] = 1e-4,
+        error_threshold: Union[float, float64] = 1e-2,
         distance: Optional[Union[int, int64]] = None,
         matching: Optional[Matching] = None,
         num_threads: Union[int, uintp] = 0,
@@ -189,15 +193,20 @@ class ImportanceSampling:
         self._parity_check_matrix = parity_check_matrix
         self._num_threads = uintp(num_threads)
         self._default_num_samples = uint64(initial_num_samples)
-        self._default_plog_error_threshold = float64(default_error_threshold)
-        self._default_weight_probability_threshold = \
-            float64(default_weight_probability_threshold)
+        self._default_plog_error_threshold = float64(error_threshold)
         self._rng = np.random.default_rng(rng_seed)
         self._data = dict()
         self._data[uint64(0)] = _WeightSamplingEntry.zero()
+
         if distance != None:
-            for weight in range(distance//2):
+            for weight in range(distance//2+1):
                 self._data[uint64(weight)] = _WeightSamplingEntry.zero()
+        #     for weight in range(distance//2+1, self.num_qubits+1):
+        #         self._data[uint64(weight)] = _WeightSamplingEntry.not_sampled()
+        # else:
+        #     for weight in range(self.num_qubits+1):
+        #         self._data[uint64(weight)] = _WeightSamplingEntry.not_sampled()
+
 
     @property
     def num_qubits(self) -> int:
@@ -262,17 +271,20 @@ class ImportanceSampling:
             weight: uint64,
             p_phys: float64,
             p_log_error_threshold: float64,
-            weight_prob_threshold: float64,
             num_samples: uint64,
      ) -> Tuple[Tuple[float64, float64], float64]:
 
         num_weights = self.num_qubits
         binom_pmf = binom.pmf(weight, num_weights, p_phys)
+
         w_error_theshold = np.inf if (binom_pmf**2)*num_weights <= 1e-300 \
             else np.sqrt((p_log_error_threshold**2)/((binom_pmf**2)*num_weights))
 
+
         if weight in self._data.keys():
             p_log, w_p_log_err = self._data[weight].stats()
+
+            # print(f"Weight {weight} in keys with error {w_p_log_err} ({w_error_theshold})", flush=True)
 
             while w_p_log_err >= w_error_theshold:
                 _, dev, current_num_samples = self._data[weight].get_vals()
@@ -284,36 +296,32 @@ class ImportanceSampling:
                 assert num_samples_diff > 0 
                 self.sample_weight(weight, num_samples_diff)
                 p_log, w_p_log_err = self._data[weight].stats()
-    
-            return ((p_log, p_log), w_p_log_err)
 
-        elif weight_prob_threshold is not None and binom_pmf >= weight_prob_threshold:
+            return ((p_log, p_log), w_p_log_err)
+        elif w_error_theshold < 0.5:
             self.sample_weight(weight, num_samples)
             p_log, w_p_log_err = self._data[weight].stats()
-
+            
             while w_p_log_err >= w_error_theshold:
                 _, dev, current_num_samples = self._data[weight].get_vals()
 
                 num_samples_diff = uint64(np.ceil(
                     (binom_pmf**2) * (dev**2) * num_weights * (1 / (p_log_error_threshold**2))
                 )) - current_num_samples
-
-                assert num_samples_diff > 0
-                assert num_samples_diff < 1e10
+                
+                assert num_samples_diff > 0 
                 self.sample_weight(weight, num_samples_diff)
                 p_log, w_p_log_err = self._data[weight].stats()
-
+            
             return ((p_log, p_log), w_p_log_err)
-
         else:
-            return (float64(0), float64(1)), float64()
+            return (float64(0.5),float64(0.5)), float64(0.5)
 
 
     def p_log_bound( # TODO: Allow for an array of p_phys to be input
         self,
         p_phys: Union[float, float64],
         p_log_error_threshold: Optional[Union[float, float64]] = None,
-        weight_prob_threshold: Optional[Union[float, float64]] = None,
         num_samples: Optional[Union[int, uint64]] = None,
     ) : # leaving it up to type inference to determine return
 
@@ -321,10 +329,7 @@ class ImportanceSampling:
             if num_samples is None else uint64(num_samples)
         p_log_error_threshold = self._default_plog_error_threshold \
             if p_log_error_threshold is None else float64(p_log_error_threshold)
-        weight_prob_threshold = self._default_weight_probability_threshold \
-            if weight_prob_threshold is None else float64(weight_prob_threshold)
         
-
         p_log_min, p_log_max, p_log_err_sqr = (0,0,0)
         n = self.num_qubits
         for weight in range(n+1):
@@ -332,7 +337,6 @@ class ImportanceSampling:
                 uint64(weight),
                 float64(p_phys),
                 p_log_error_threshold,
-                weight_prob_threshold,
                 num_samples,
             )
             p_log_min += binom.pmf(weight,self.num_qubits,p_phys) * low
