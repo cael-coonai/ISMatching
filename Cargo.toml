@@ -9,7 +9,7 @@ name = "ismatching"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = {version = "0.21.2", features = ["num-bigint"]}
+pyo3 = {version = "0.21.2", features = ["num-bigint", "anyhow"]}
 ndarray = {version = "0.15.6", features = ["rayon"]}
 numpy = "0.21.0"
 rand = "0.8.5"
@@ -19,3 +19,4 @@ rayon = "1.10.0"
 num_cpus = "1.16.0"
 num-bigint = "0.4.6"
 num-traits = "0.2.19"
+anyhow = "1.0.86"
