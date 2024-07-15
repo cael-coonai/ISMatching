@@ -2,7 +2,7 @@ from ismatching import ismatching
 from numpy.typing import NDArray
 import numpy as np
 from numpy import int64, uint8, uint64, float64, uintp
-from scipy.stats import binom, sem
+from scipy.stats import binom
 from typing import Dict, List, Optional, Tuple, Union
 from pymatching import Matching
 
@@ -13,7 +13,7 @@ def generate_errors(
     error_rate: Union[float, float64] = 0.5,
     num_threads: Union[int, uintp] = 0,
     error_weight: Optional[Union[int, uint64]] = None,
-    rng_seed: Optional[int]=None, ## Up to 32 bytes
+    rng_seed: Optional[int] = None, ## Up to 32 bytes
 ) -> NDArray[uint8]:
     
     return ismatching._generate_errors(
@@ -165,8 +165,9 @@ class ImportanceSampling:
     _matching: Matching
     _parity_check_matrix: NDArray[uint8]
     _num_threads: uintp
-    _initial_num_samples: uint64
+    _default_num_samples: uint64
     _default_plog_error_threshold: float64
+    _default_weight_probability_threshold: float64
     _rng: np.random.Generator
     _data: Dict[uint64, _WeightSamplingEntry]
 
@@ -175,8 +176,9 @@ class ImportanceSampling:
         self,
         parity_check_matrix: NDArray[uint8], ### TODO: Derive parity check matrix from Matching
         initial_num_samples: Union[int, uint64] = int(1e5),
-        default_error_threshold: Union[float, float64] = 0.01,
-        code_distance: Optional[Union[int, int64]] = None,
+        default_error_threshold: Union[float, float64] = 1e-2,
+        default_weight_probability_threshold: Union[float, float64] = 1e-4,
+        distance: Optional[Union[int, int64]] = None,
         matching: Optional[Matching] = None,
         num_threads: Union[int, uintp] = 0,
         rng_seed: Optional[Union[int, np.random.Generator]] = None,
@@ -186,13 +188,15 @@ class ImportanceSampling:
             if matching is None else matching
         self._parity_check_matrix = parity_check_matrix
         self._num_threads = uintp(num_threads)
-        self._initial_num_samples = uint64(initial_num_samples)
+        self._default_num_samples = uint64(initial_num_samples)
         self._default_plog_error_threshold = float64(default_error_threshold)
+        self._default_weight_probability_threshold = \
+            float64(default_weight_probability_threshold)
         self._rng = np.random.default_rng(rng_seed)
         self._data = dict()
         self._data[uint64(0)] = _WeightSamplingEntry.zero()
-        if code_distance != None:
-            for weight in range(code_distance//2):
+        if distance != None:
+            for weight in range(distance//2):
                 self._data[uint64(weight)] = _WeightSamplingEntry.zero()
 
     @property
@@ -255,51 +259,51 @@ class ImportanceSampling:
 
     def _get_p_log_bound_by_weight(
             self,
-            weight: Union[int, uint64],
-            p_phys: Union[float, float64],
-            p_log_error_threshold: Optional[Union[float, float64]],
-            weight_prob_threshold: Optional[Union[float, float64]],
+            weight: uint64,
+            p_phys: float64,
+            p_log_error_threshold: float64,
+            weight_prob_threshold: float64,
             num_samples: uint64,
      ) -> Tuple[Tuple[float64, float64], float64]:
 
-        weight = uint64(weight)
-
-        if p_log_error_threshold is None:
-            p_log_error_threshold = self._default_plog_error_threshold
-        if num_samples is None:
-            num_samples = self._initial_num_samples
-
         num_weights = self.num_qubits
         binom_pmf = binom.pmf(weight, num_weights, p_phys)
-        w_error_theshold = np.inf \
-            if ((binom_pmf**2)) <= 1e-300 \
+        w_error_theshold = np.inf if (binom_pmf**2)*num_weights <= 1e-300 \
             else np.sqrt((p_log_error_threshold**2)/((binom_pmf**2)*num_weights))
 
         if weight in self._data.keys():
             p_log, w_p_log_err = self._data[weight].stats()
+
             while w_p_log_err >= w_error_theshold:
                 _, dev, current_num_samples = self._data[weight].get_vals()
+
                 num_samples_diff = uint64(np.ceil(
                     (binom_pmf**2) * (dev**2) * num_weights * (1 / (p_log_error_threshold**2))
                 )) - current_num_samples
-                assert(num_samples_diff > 0)
+                
+                assert num_samples_diff > 0 
                 self.sample_weight(weight, num_samples_diff)
                 p_log, w_p_log_err = self._data[weight].stats()
-            return ((p_log,p_log),w_p_log_err)
+    
+            return ((p_log, p_log), w_p_log_err)
 
         elif weight_prob_threshold is not None and binom_pmf >= weight_prob_threshold:
             self.sample_weight(weight, num_samples)
             p_log, w_p_log_err = self._data[weight].stats()
+
             while w_p_log_err >= w_error_theshold:
                 _, dev, current_num_samples = self._data[weight].get_vals()
+
                 num_samples_diff = uint64(np.ceil(
                     (binom_pmf**2) * (dev**2) * num_weights * (1 / (p_log_error_threshold**2))
                 )) - current_num_samples
-                assert(num_samples_diff > 0)
-                assert(num_samples_diff < 1e10)
+
+                assert num_samples_diff > 0
+                assert num_samples_diff < 1e10
                 self.sample_weight(weight, num_samples_diff)
                 p_log, w_p_log_err = self._data[weight].stats()
-            return ((p_log,p_log),w_p_log_err)
+
+            return ((p_log, p_log), w_p_log_err)
 
         else:
             return (float64(0), float64(1)), float64()
@@ -311,24 +315,29 @@ class ImportanceSampling:
         p_log_error_threshold: Optional[Union[float, float64]] = None,
         weight_prob_threshold: Optional[Union[float, float64]] = None,
         num_samples: Optional[Union[int, uint64]] = None,
-    ) : # leaving it up to type inference to determine 
+    ) : # leaving it up to type inference to determine return
 
-        num_samples = self._initial_num_samples if num_samples is None \
-                    else uint64(num_samples)
+        num_samples = self._default_num_samples \
+            if num_samples is None else uint64(num_samples)
+        p_log_error_threshold = self._default_plog_error_threshold \
+            if p_log_error_threshold is None else float64(p_log_error_threshold)
+        weight_prob_threshold = self._default_weight_probability_threshold \
+            if weight_prob_threshold is None else float64(weight_prob_threshold)
+        
 
-        p_log_min, p_log_max, p_log_err_to2 = (0,0,0)
+        p_log_min, p_log_max, p_log_err_sqr = (0,0,0)
         n = self.num_qubits
         for weight in range(n+1):
             (low, high), err = self._get_p_log_bound_by_weight(
-                weight,
-                p_phys,
+                uint64(weight),
+                float64(p_phys),
                 p_log_error_threshold,
                 weight_prob_threshold,
                 num_samples,
             )
             p_log_min += binom.pmf(weight,self.num_qubits,p_phys) * low
             p_log_max += binom.pmf(weight,self.num_qubits,p_phys) * high
-            p_log_err_to2 += (binom.pmf(weight,self.num_qubits,p_phys)*err)**2
-        p_log_err = np.sqrt(p_log_err_to2)
+            p_log_err_sqr += (binom.pmf(weight,self.num_qubits,p_phys)*err)**2
+        p_log_err = np.sqrt(p_log_err_sqr)
         return (p_log_min, p_log_max), p_log_err
 
