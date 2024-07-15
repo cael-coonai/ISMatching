@@ -6,37 +6,40 @@ use rand::{seq::IteratorRandom, RngCore, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 use rand_distr::{Binomial, Distribution, Uniform};
 use rayon::prelude::*;
+use anyhow::Result;
 
-fn thread_pool_generator(num_threads:usize) -> rayon::ThreadPool {
+fn thread_pool_generator(num_threads:usize) -> Result<rayon::ThreadPool> {
     let num_threads = if num_threads == 0 {num_cpus::get()} else {num_threads};
     let pool = rayon::ThreadPoolBuilder::new();
-    pool.num_threads(num_threads).build().unwrap()
+    Ok(pool.num_threads(num_threads).build()?)
 }
 
 fn generate_error_batch(
     rng_seed: [u8;32],
     rng_stream: u64,
     batch_size: u64,
-    error_weight: Option<usize>,
+    error_weight: Option<u64>,
     binomial: Binomial,
     uniform: Uniform<u8>,
-    num_qubits: usize,
+    num_qubits: u64,
 ) -> Vec<Vec<u8>> {
+
+    let num_qubits_usize = num_qubits as usize;
 
     let mut rng = ChaCha8Rng::from_seed(rng_seed);
     rng.set_stream(rng_stream);
-    
-    return (0..batch_size).map(move |_| {
+
+    let batch = (0..batch_size).map(move |_| {
         let error_weight = match error_weight {
-            Some(w) => w,
+            Some(w) => w as usize,
             None    => binomial.sample(&mut rng) as usize
         };
 
-        let error_indices = (0..num_qubits)
+        let error_indices = (0..num_qubits_usize)
             .choose_multiple(&mut rng, error_weight);
-    
 
-        let mut error = vec![0;num_qubits*2];
+
+        let mut error = vec![0;num_qubits_usize*2];
 
         for qubit_idx in error_indices.into_iter() {
             // 0 := X, 1 := Y, 2 := Z
@@ -46,22 +49,23 @@ fn generate_error_batch(
                 error[qubit_idx] = 1;
             }
             if error_type <= 1 {
-                error[qubit_idx + num_qubits] = 1;
+                error[qubit_idx + num_qubits_usize] = 1;
             }
         }
         error
     })
     .collect::<Vec<_>>();
+    return batch
 }
 
 pub fn generate_errors(
-    num_qubits: usize,
+    num_qubits: u64,
     num_samples: u64,
     error_rate: f64,
     num_threads: usize,
-    error_weight: Option<usize>,
+    error_weight: Option<u64>,
     rng_seed: Option<BigUint>,
-) -> Vec<Vec<u8>> {
+) -> Result<Vec<Vec<u8>>> {
 
     let batch_size = 10000;
     let batches = num_samples / batch_size;
@@ -83,7 +87,7 @@ pub fn generate_errors(
         }
     };
 
-    let binomial = Binomial::new(num_qubits as u64, error_rate).unwrap();
+    let binomial = Binomial::new(num_qubits as u64, error_rate)?;
     let uniform = Uniform::from(0..=2u8);
 
     let mut errors = generate_error_batch(
@@ -96,7 +100,7 @@ pub fn generate_errors(
         num_qubits
     );
 
-    thread_pool_generator(num_threads).install(|| {
+    thread_pool_generator(num_threads)?.install(|| {
         errors.append(
             &mut (1..=batches)
                 .into_par_iter()
@@ -117,17 +121,18 @@ pub fn generate_errors(
                 )
         );
     });
-    return errors;
+    
+    return Ok(errors);
 }
 
 pub fn generate_syndromes(
     check_matrix:&ArrayView2<u8>,
     errors:&ArrayView2<u8>,
     num_threads: usize
-) -> Vec<Vec<u8>> {
+) -> Result<Vec<Vec<u8>>> {
     let mut syndromes = Vec::with_capacity(0);
 
-    thread_pool_generator(num_threads).install(|| {
+    thread_pool_generator(num_threads)?.install(|| {
         syndromes = errors.axis_iter(Axis(0))
             .into_par_iter()
             .map(|error| {
@@ -139,23 +144,23 @@ pub fn generate_syndromes(
                         syndrome[syn_idx] ^= e_bit & c_bit;
                     }
                 }
-                
+
                 syndrome
             })
             .collect::<Vec<_>>();
     });
 
-    return syndromes;
+    return Ok(syndromes);
 }
 
 pub fn determine_logical_errors(
     errors:&ArrayView2<u8>,
     predictions:&ArrayView2<u8>,
     num_threads: usize
-) -> Vec<u8> {
+) -> Result<Vec<u8>> {
     let mut failures = Vec::with_capacity(0);
 
-    thread_pool_generator(num_threads).install(|| {
+    thread_pool_generator(num_threads)?.install(|| {
         failures = Zip::from(predictions.axis_iter(Axis(0)))
             .and(errors.axis_iter(Axis(0)))
             .into_par_iter()
@@ -168,7 +173,7 @@ pub fn determine_logical_errors(
 
                 let z_dec = &decoding[..(decoding.len()/2)];
                 let x_dec = &decoding[(decoding.len()/2)..];
-                
+
                 let mut x_failed = 0;
                 let mut z_failed = 0;
                 for (z_bit, x_bit) in z_dec.into_iter().zip(x_dec.into_iter()) {
@@ -180,5 +185,5 @@ pub fn determine_logical_errors(
             .collect::<Vec<_>>();
     });
 
-    failures
+    Ok(failures)
 }
