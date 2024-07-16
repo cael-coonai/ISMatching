@@ -20,8 +20,6 @@ TODO:
 - Documentation
 - Make Code Work Good
 - Organise Code Properly
-- Rename function parameters
-- Document external api
 - Document internals
   - Python
   - Rust
