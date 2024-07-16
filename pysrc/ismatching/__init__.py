@@ -266,13 +266,13 @@ class ImportanceSampling:
 
 
 
-    def _get_p_log_bound_by_weight(
+    def _get_p_log_by_weight(
             self,
             weight: uint64,
             p_phys: float64,
             p_log_error_threshold: float64,
             num_samples: uint64,
-     ) -> Tuple[Tuple[float64, float64], float64]:
+     ) -> Tuple[float64, float64]:
 
         num_weights = self.num_qubits
         binom_pmf = binom.pmf(weight, num_weights, p_phys)
@@ -297,7 +297,7 @@ class ImportanceSampling:
                 self.sample_weight(weight, num_samples_diff)
                 p_log, w_p_log_err = self._data[weight].stats()
 
-            return ((p_log, p_log), w_p_log_err)
+            return p_log, w_p_log_err
         elif w_error_theshold < 0.5:
             self.sample_weight(weight, num_samples)
             p_log, w_p_log_err = self._data[weight].stats()
@@ -313,12 +313,12 @@ class ImportanceSampling:
                 self.sample_weight(weight, num_samples_diff)
                 p_log, w_p_log_err = self._data[weight].stats()
             
-            return ((p_log, p_log), w_p_log_err)
+            return p_log, w_p_log_err
         else:
-            return (float64(0.5),float64(0.5)), float64(0.5)
+            return float64(1), float64(1)
 
 
-    def p_log_bound( # TODO: Allow for an array of p_phys to be input
+    def p_log( # TODO: Allow for an array of p_phys to be input
         self,
         p_phys: Union[float, float64],
         p_log_error_threshold: Optional[Union[float, float64]] = None,
@@ -330,18 +330,18 @@ class ImportanceSampling:
         p_log_error_threshold = self._default_plog_error_threshold \
             if p_log_error_threshold is None else float64(p_log_error_threshold)
         
-        p_log_min, p_log_max, p_log_err_sqr = (0,0,0)
+        p_log_min, p_log, p_log_err_sqr = (0,0,0)
         n = self.num_qubits
         for weight in range(n+1):
-            (low, high), err = self._get_p_log_bound_by_weight(
+            mean, err = self._get_p_log_by_weight(
                 uint64(weight),
                 float64(p_phys),
                 p_log_error_threshold,
                 num_samples,
             )
-            p_log_min += binom.pmf(weight,self.num_qubits,p_phys) * low
-            p_log_max += binom.pmf(weight,self.num_qubits,p_phys) * high
+            p_log += binom.pmf(weight,self.num_qubits,p_phys) * mean
             p_log_err_sqr += (binom.pmf(weight,self.num_qubits,p_phys)*err)**2
         p_log_err = np.sqrt(p_log_err_sqr)
-        return (p_log_min, p_log_max), p_log_err
+        return p_log, p_log_err
+
 
