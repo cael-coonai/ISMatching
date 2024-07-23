@@ -1,4 +1,5 @@
-from is_functions import *
+import ismatching.pyfunctions as functions
+from ismatching.pyimports import *
 
 class _WeightSamplingEntry:
     """
@@ -193,7 +194,7 @@ class ImportanceSampling:
 
         error_weight = uint64(error_weight)
 
-        errors = generate_errors(
+        errors = functions.generate_errors(
             self.num_qubits,
             num_samples,
             error_weight = error_weight,
@@ -201,7 +202,7 @@ class ImportanceSampling:
             num_threads = self._num_threads,
         )
 
-        syndromes = generate_syndromes(
+        syndromes = functions.generate_syndromes(
             self._parity_check_matrix,
             errors,
             self._num_threads,
@@ -210,7 +211,7 @@ class ImportanceSampling:
         predictions = self._matching.decode_batch(syndromes)
         assert type(predictions) is np.ndarray ###################### TODO: allow for phenomological noise
 
-        failures = determine_logical_errors(errors,predictions,self._num_threads)
+        failures = functions.determine_logical_errors(errors,predictions,self._num_threads)
 
         if error_weight in self._data:
             self._data[error_weight].add_data(
