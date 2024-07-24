@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.1">
+<title>ismatching API documentation</title>
+<meta name="description" content="">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Package <code>ismatching</code></h1>
+</header>
+<section id="section-intro">
+</section>
+<section>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+<dl>
+<dt><code class="name"><a title="ismatching.ismatching" href="ismatching.html">ismatching.ismatching</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="ismatching.pyclass" href="pyclass.html">ismatching.pyclass</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="ismatching.pyfunctions" href="pyfunctions.html">ismatching.pyfunctions</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="ismatching.determine_logical_errors"><code class="name flex">
+<span>def <span class="ident">determine_logical_errors</span></span>(<span>errors: numpy.ndarray[typing.Any, numpy.dtype[numpy.uint8]], predictions: numpy.ndarray[typing.Any, numpy.dtype[numpy.uint8]], num_threads: Union[int, numpy.uint64] = 0) ‑> numpy.ndarray[typing.Any, numpy.dtype[numpy.uint8]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sums the errors to the predictions generated by a decoder (such as
+PyMatching) and returns if the error caused a logical error.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>errors</code></strong> :&ensp;<code>NDArray[uint8]</code></dt>
+<dd>A 2D array containing errors. Each row should be a single sample of an
+error.</dd>
+<dt><strong><code>predictions</code></strong> :&ensp;<code>NDArray[uint8]</code></dt>
+<dd>A 2D array containing error predictions. Each row should contain a
+single error prediction</dd>
+<dt><strong><code>num_threads</code></strong> :&ensp;<code>Union[int, uintp]</code>, optional</dt>
+<dd>The number of threads to allocate.
+If 0, then the number of threads would be set to the number of logical
+cores for your cpu.
+By default 0</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>NDArray[uint8]</code></dt>
+<dd>A 1D array containing the 1 if a logical error and 0 otherwise for each
+shot.</dd>
+</dl></div>
+</dd>
+<dt id="ismatching.generate_errors"><code class="name flex">
+<span>def <span class="ident">generate_errors</span></span>(<span>num_qubits: Union[int, numpy.uint64], num_samples: Union[int, numpy.uint64] = 1, noise_level: Union[float, numpy.float64] = 0.5, num_threads: Union[int, numpy.uint64] = 0, error_weight: Union[int, numpy.uint64, ForwardRef(None)] = None, rng_seed: Optional[int] = None) ‑> numpy.ndarray[typing.Any, numpy.dtype[numpy.uint8]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generates qubit errors in a binary format. X, Y, and Z errors are generated
+with equal probability.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>num_qubits</code></strong> :&ensp;<code>Union[int, uint64]</code></dt>
+<dd>The number of qubits for generation.</dd>
+<dt><strong><code>num_samples</code></strong> :&ensp;<code>Union[int, uint64]</code>, optional</dt>
+<dd>The number of samples to take.
+By default 1</dd>
+<dt><strong><code>noise_level</code></strong> :&ensp;<code>Union[float, float64]</code>, optional</dt>
+<dd>The noise level of the system.
+If error_weight is not None, then this parameter is ignored.
+By default 0.5</dd>
+<dt><strong><code>num_threads</code></strong> :&ensp;<code>Union[int, uintp]</code>, optional</dt>
+<dd>The number of threads to allocate.
+If 0, then the number of threads would be set to the number of logical
+cores for your cpu.
+By default 0</dd>
+<dt><strong><code>error_weight</code></strong> :&ensp;<code>Optional[Union[int, uint64]]</code>, optional</dt>
+<dd>The Hamming Weight of the error generated.
+By default None</dd>
+<dt><strong><code>rng_seed</code></strong> :&ensp;<code>Optional[int]</code>, optional</dt>
+<dd>Seed for RNG. Accept an int upto 32 bytes. It is expected that the bits
+within the seed are well distributed. If this function is being called
+in a loop, it is recommended that the seed be generated by a seeded
+rng such as numpy.random.Generator for each iteration. If None then
+randomness will be given by the operating system.
+By default None</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>NDArray[uint8]</code></dt>
+<dd>Each row of the array contains a single error sample. The first half
+of each row contains the Z error on each qubit and the second half
+contains the X error.</dd>
+</dl></div>
+</dd>
+<dt id="ismatching.monte_carlo"><code class="name flex">
+<span>def <span class="ident">monte_carlo</span></span>(<span>parity_check_matrix: numpy.ndarray[typing.Any, numpy.dtype[numpy.uint8]], noise_level: Union[float, numpy.float64], num_samples: Union[int, numpy.uint64] = 1, num_threads: Union[int, numpy.uint64] = 0, matching: Optional[pymatching.matching.Matching] = None, rng_seed: Optional[int] = None) ‑> Tuple[numpy.float64, numpy.float64]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generates qubit errors in a binary format. X, Y, and Z errors are generated
+with equal probability.
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>parity_check_matrix</code></strong> :&ensp;<code>NDArray[uint8]</code></dt>
+<dd>The check matrix used to generate the syndrome for the errors.</dd>
+<dt><strong><code>noise_level</code></strong> :&ensp;<code>Union[float, float64]</code></dt>
+<dd>The noise level of the system.</dd>
+<dt><strong><code>num_samples</code></strong> :&ensp;<code>Union[int, uint64]</code>, optional</dt>
+<dd>The number of samples of errors taken at the error rate specified.
+By default 1</dd>
+<dt><strong><code>num_threads</code></strong> :&ensp;<code>Union[int, uintp]</code>, optional</dt>
+<dd>The number of threads to allocate.
+If 0, then the number of threads would be set to the number of logical
+cores for your cpu.
+By default 0</dd>
+<dt><strong><code>matching</code></strong> :&ensp;<code>Optional[Matching]</code>, optional</dt>
+<dd>A Matching object created by PyMatching
+If none, one will be generated from parity_check_matrix.
+By default None</dd>
+<dt><strong><code>rng_seed</code></strong> :&ensp;<code>Optional[int]</code>, optional</dt>
+<dd>Seed for RNG. Accept an int upto 32 bytes. It is expected that the bits
+within the seed are well distributed. If this function is being called
+in a loop, it is recommended that the seed be generated by a seeded
+rng such as numpy.random.Generator for each iteration. If None then
+randomness will be given by the operating system.
+By default None</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Tuple[float64, float64]</code></dt>
+<dd>A tuple containing the mean and standard error of the Monte Carlo
+simulation in the format: (mean, standard_error)</dd>
+</dl></div>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="ismatching.ImportanceSampling"><code class="flex name class">
+<span>class <span class="ident">ImportanceSampling</span></span>
+<span>(</span><span>parity_check_matrix: numpy.ndarray[typing.Any, numpy.dtype[numpy.uint8]], initial_num_samples: Union[int, numpy.uint64] = 100000, error_threshold: Union[float, numpy.float64] = 0.01, distance: Union[int, numpy.int64, ForwardRef(None)] = None, matching: Optional[pymatching.matching.Matching] = None, num_threads: Union[int, numpy.uint64] = 0, rng_seed: Union[int, numpy.random._generator.Generator, ForwardRef(None)] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class that performs and contains the results of importance sampling.
+Makes use of a PyMatching Matching to execute the decoding of errors
+generated. When determining the decoding failure rate (logical error rate)
+for a particular noise level (physical error rate), only enough weight
+samples will be taken for the standard error of the failure rate to be below
+error_threshold. All unsampled weights are assumed to have a failure rate of
+1.0 and a standard error of 1.0, hence, in a case where not all weights are
+sampled, an upper bound for the failure rate is returned.</p>
+<p>Constructor of the ImportanceSampling class.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>parity_check_matrix</code></strong> :&ensp;<code>NDArray[uint8]</code></dt>
+<dd>The check matrix used to generate the syndrome for the errors.</dd>
+<dt><strong><code>initial_num_samples</code></strong> :&ensp;<code>Union[int, uint64]</code></dt>
+<dd>The initial number of samples to be taken of each weight. This
+initial sampling is used to provide a rough estimate of the failure
+rate of each weight before additional samples are taken due to the
+error_theshold parameter.
+Note: If no failures are produced within this initial sample then it
+will be assumed that the particular error weight never results in a
+decoding failure and will not be sampled again.
+By default 100000</dd>
+<dt><strong><code>error_threshold</code></strong> :&ensp;<code>Union[float, float64]</code>, optional</dt>
+<dd>The default threshold for the standard error of the failure rate.
+All failure rates generated are guaranteed to have a standard error
+of mean less than this value.
+By default 1e-2</dd>
+<dt><strong><code>distance</code></strong> :&ensp;<code>Optional[Union[int, int64]]</code>, optional</dt>
+<dd>The distance of the error correction code.
+When not None, this distance is used to skip unnecessary sampling.
+By default None</dd>
+<dt><strong><code>matching</code></strong> :&ensp;<code>Optional[Matching]</code>, optional</dt>
+<dd>A Matching object created by PyMatching
+If none, one will be generated from parity_check_matrix.
+By default None</dd>
+<dt><strong><code>num_threads</code></strong> :&ensp;<code>Union[int, uintp]</code>, optional</dt>
+<dd>The number of threads to allocate.
+If 0, then the number of threads would be set to the number of
+logical cores for your cpu.
+By default 0</dd>
+<dt><strong><code>rng_seed</code></strong> :&ensp;<code>Optional[Union[int, np.random.Generator]]</code>, optional</dt>
+<dd>The rng seed used in the generation of errors.
+If None, then the default numpy rng will be used.
+By default None</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ImportanceSampling:
+    &#34;&#34;&#34;
+    A class that performs and contains the results of importance sampling.
+    Makes use of a PyMatching Matching to execute the decoding of errors
+    generated. When determining the decoding failure rate (logical error rate)
+    for a particular noise level (physical error rate), only enough weight
+    samples will be taken for the standard error of the failure rate to be below
+    error_threshold. All unsampled weights are assumed to have a failure rate of
+    1.0 and a standard error of 1.0, hence, in a case where not all weights are
+    sampled, an upper bound for the failure rate is returned.
+    &#34;&#34;&#34;
+
+    _matching: Matching
+    _parity_check_matrix: NDArray[uint8]
+    _num_threads: uintp
+    _default_num_samples: uint64
+    _default_plog_error_threshold: float64
+    _default_weight_probability_threshold: float64
+    _rng: np.random.Generator
+    _data: Dict[uint64, _WeightSamplingEntry]
+
+
+    def __init__(
+        self,
+        parity_check_matrix: NDArray[uint8], ### TODO: Derive parity check matrix from Matching
+        initial_num_samples: Union[int, uint64] = int(1e5),
+        error_threshold: Union[float, float64] = 1e-2,
+        distance: Optional[Union[int, int64]] = None,
+        matching: Optional[Matching] = None,
+        num_threads: Union[int, uintp] = 0,
+        rng_seed: Optional[Union[int, np.random.Generator]] = None,
+    ) -&gt; None:
+        &#34;&#34;&#34;
+        Constructor of the ImportanceSampling class.
+
+        Parameters
+        ----------
+        parity_check_matrix : NDArray[uint8]
+            The check matrix used to generate the syndrome for the errors.
+        initial_num_samples : Union[int, uint64]
+            The initial number of samples to be taken of each weight. This
+            initial sampling is used to provide a rough estimate of the failure
+            rate of each weight before additional samples are taken due to the
+            error_theshold parameter.
+            Note: If no failures are produced within this initial sample then it
+            will be assumed that the particular error weight never results in a
+            decoding failure and will not be sampled again.
+            By default 100000
+        error_threshold : Union[float, float64], optional
+            The default threshold for the standard error of the failure rate.
+            All failure rates generated are guaranteed to have a standard error
+            of mean less than this value.
+            By default 1e-2
+        distance : Optional[Union[int, int64]], optional
+            The distance of the error correction code.
+            When not None, this distance is used to skip unnecessary sampling.
+            By default None
+        matching : Optional[Matching], optional
+            A Matching object created by PyMatching
+            If none, one will be generated from parity_check_matrix.
+            By default None
+        num_threads : Union[int, uintp], optional
+            The number of threads to allocate.
+            If 0, then the number of threads would be set to the number of
+            logical cores for your cpu.
+            By default 0
+        rng_seed : Optional[Union[int, np.random.Generator]], optional
+            The rng seed used in the generation of errors.
+            If None, then the default numpy rng will be used.
+            By default None
+        &#34;&#34;&#34;
+
+        self._matching = Matching(parity_check_matrix) \
+            if matching is None else matching
+        self._parity_check_matrix = parity_check_matrix
+        self._num_threads = uintp(num_threads)
+        self._default_num_samples = uint64(initial_num_samples)
+        self._default_plog_error_threshold = float64(error_threshold)
+        self._rng = np.random.default_rng(rng_seed)
+        self._data = dict()
+        self._data[uint64(0)] = _WeightSamplingEntry.zero()
+
+        if distance != None:
+            for weight in range(distance//2+1):
+                self._data[uint64(weight)] = _WeightSamplingEntry.zero()
+
+
+    @property
+    def num_qubits(self) -&gt; int:
+        &#34;&#34;&#34;
+        The number of physical qubits on which the error code acts.
+        &#34;&#34;&#34;
+        return self._matching.num_nodes
+    
+    
+    def sample_weight(
+        self,
+        error_weight: Union[int, uint64],
+        num_samples: Union[int, uint64],
+    ) -&gt; None:
+        &#34;&#34;&#34;
+        Takes a sampling of a particular weight and stores the result.
+
+        Parameters
+        ----------
+        error_weight : Union[int, uint64]
+            The weight to be sampled.
+        num_samples : Union[int, uint64]
+            The number of samples to be taken.
+        &#34;&#34;&#34;
+
+        error_weight = uint64(error_weight)
+
+        errors = functions.generate_errors(
+            self.num_qubits,
+            num_samples,
+            error_weight = error_weight,
+            rng_seed = int.from_bytes(self._rng.bytes(32)),
+            num_threads = self._num_threads,
+        )
+
+        syndromes = functions.generate_syndromes(
+            self._parity_check_matrix,
+            errors,
+            self._num_threads,
+        )
+
+        predictions = self._matching.decode_batch(syndromes)
+        assert type(predictions) is np.ndarray ###################### TODO: allow for phenomological noise
+
+        failures = functions.determine_logical_errors(errors,predictions,self._num_threads)
+
+        if error_weight in self._data:
+            self._data[error_weight].add_data(
+                np.average(failures),
+                np.std(failures),
+                num_samples,
+            )
+
+        else:
+            self._data[error_weight] = _WeightSamplingEntry(
+                np.average(failures),
+                np.std(failures),
+                num_samples,
+            )
+
+    
+    def get_weights(self) -&gt; List[Tuple[uint64, Tuple[float64, float64]]]:
+        &#34;&#34;&#34;
+        Returns the error weights sampled and the failure rate with the standard
+        error for the failure rate for each weight.
+
+        Returns
+        -------
+        List[Tuple[uint64, Tuple[float64, float64]]]
+            Each tuple is in the format:
+            (weight, (failure_rate, standard_error))
+        &#34;&#34;&#34;
+        weights: List[Tuple[uint64, Tuple[float64, float64]]] = []
+        for w, e in self._data.items():
+            weights.append((w, e.stats()))
+        return weights
+
+
+
+    def _failure_rate_by_weight(
+            self,
+            weight: uint64,
+            noise_level: float64,
+            error_threshold: float64,
+            initial_num_samples: uint64,
+     ) -&gt; Tuple[float64, float64]:
+        &#34;&#34;&#34;
+        Returns the failure rate and standard error of that failure rate for a
+        particular error weight. If the weight&#39;s failure rate standard error is
+        above the requirement for the error_threshold then additional samples
+        will be taken.
+
+        Parameters
+        ----------
+        weight : uint64
+            The error weight being checked.
+        noise_level : float64
+            The noise_level being checked.
+        error_threshold : float64
+            The standard error threshold for the overall failure rate of the
+            noise level.
+        initial_num_samples : uint64
+            The initial number of samples to be taken if the weight given has
+            not been sampled and the assumed standard error (1) is above the
+            requirement for the overall failure rate standard error of the noise
+            level.
+
+        Returns
+        -------
+        Tuple[float64, float64]
+            A tuple in the format: (weight_failure_rate, weight_standard_error)
+        &#34;&#34;&#34;
+
+        num_weights = self.num_qubits
+        binom_pmf = binom.pmf(weight, num_weights, noise_level)
+
+        # Ternary statement is to prevent potential divide by 0 error.
+        w_error_threshold = np.inf if (binom_pmf**2)*num_weights &lt;= 1e-300 \
+            else np.sqrt((error_threshold**2)/((binom_pmf**2)*num_weights))
+
+
+        if weight in self._data.keys():
+            w_failure_rate, w_error = self._data[weight].stats()
+
+            while w_error &gt;= w_error_threshold:
+                _, dev, current_num_samples = self._data[weight].values()
+
+                num_samples_diff = uint64(np.ceil(
+                    (binom_pmf**2) * (dev**2) * num_weights * (1 / (error_threshold**2))
+                )) - current_num_samples
+                assert num_samples_diff &gt; 0
+ 
+                self.sample_weight(weight, num_samples_diff)
+                w_failure_rate, w_error = self._data[weight].stats()
+            return w_failure_rate, w_error
+
+        elif w_error_threshold &lt; 0.5:
+            self.sample_weight(weight, initial_num_samples)
+            w_failure_rate, w_error = self._data[weight].stats()
+            
+            while w_error &gt;= w_error_threshold:
+                _, dev, current_num_samples = self._data[weight].values()
+
+                num_samples_diff = uint64(np.ceil(
+                    (binom_pmf**2) * (dev**2) * num_weights * (1 / (error_threshold**2))
+                )) - current_num_samples
+                
+                assert num_samples_diff &gt; 0 
+                self.sample_weight(weight, num_samples_diff)
+                w_failure_rate, w_error = self._data[weight].stats()
+            return w_failure_rate, w_error
+
+        else:
+            return float64(1), float64(1)
+
+
+    def failure_rate( # TODO: Allow for an array of p_phys to be input
+        self,
+        noise_level: Union[float, float64],
+        error_threshold: Optional[Union[float, float64]] = None,
+        initial_num_samples: Optional[Union[int, uint64]] = None,
+    ) : # leaving it up to type inference to determine return
+        &#34;&#34;&#34;
+        Determines and returns the decoding failure rate for a particular noise
+        level. Additional samples of the weights will be taken and stored if the
+        specified error_threshold cannot be reached.
+
+        Parameters
+        ----------
+        noise_level : Union[float, float64]
+            The noise level to be checked.
+        error_theshold : Optional[Union[float, float64]], optional
+            The threshold for the standard error rate of the failure rate.
+            The standard error returned is guaranteed to be less than this
+            value.
+            If None, the error_threshold will be taken from the initialisation
+            of the ImportanceSampling.
+            By default None
+        initial_num_samples : Optional[Union[int, uint64]], optional
+            The initial number of samples to be taken if the weight given has
+            not been sampled and the assumed standard error (1) is above the
+            requirement for the overall failure rate standard error of the noise
+            level.
+            If None, the initial_num_samples will be taken from the
+            initialisation of the ImportanceSampling.
+            By default None
+
+        Returns
+        -------
+            Probably a tuple containing two float64 in the format:
+            (failure_rate, standard_error)
+        &#34;&#34;&#34; # TODO: Determine what this function actually returns.
+
+        initial_num_samples = self._default_num_samples \
+            if initial_num_samples is None else uint64(initial_num_samples)
+        error_threshold = self._default_plog_error_threshold \
+            if error_threshold is None else float64(error_threshold)
+        
+        failure_rate, standard_error_sqr = 0,0
+        n = self.num_qubits
+        for weight in range(n+1):
+            mean, err = self._failure_rate_by_weight(
+                uint64(weight),
+                float64(noise_level),
+                error_threshold,
+                initial_num_samples,
+            )
+            failure_rate += binom.pmf(weight,self.num_qubits,noise_level) * mean
+            standard_error_sqr += (binom.pmf(weight,self.num_qubits,noise_level)*err)**2
+        standard_error = np.sqrt(standard_error_sqr)
+        return failure_rate, standard_error</code></pre>
+</details>
+<h3>Instance variables</h3>
+<dl>
+<dt id="ismatching.ImportanceSampling.num_qubits"><code class="name">prop <span class="ident">num_qubits</span> : int</code></dt>
+<dd>
+<div class="desc"><p>The number of physical qubits on which the error code acts.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def num_qubits(self) -&gt; int:
+    &#34;&#34;&#34;
+    The number of physical qubits on which the error code acts.
+    &#34;&#34;&#34;
+    return self._matching.num_nodes</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ismatching.ImportanceSampling.failure_rate"><code class="name flex">
+<span>def <span class="ident">failure_rate</span></span>(<span>self, noise_level: Union[float, numpy.float64], error_threshold: Union[float, numpy.float64, ForwardRef(None)] = None, initial_num_samples: Union[int, numpy.uint64, ForwardRef(None)] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Determines and returns the decoding failure rate for a particular noise
+level. Additional samples of the weights will be taken and stored if the
+specified error_threshold cannot be reached.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>noise_level</code></strong> :&ensp;<code>Union[float, float64]</code></dt>
+<dd>The noise level to be checked.</dd>
+<dt><strong><code>error_theshold</code></strong> :&ensp;<code>Optional[Union[float, float64]]</code>, optional</dt>
+<dd>The threshold for the standard error rate of the failure rate.
+The standard error returned is guaranteed to be less than this
+value.
+If None, the error_threshold will be taken from the initialisation
+of the ImportanceSampling.
+By default None</dd>
+<dt><strong><code>initial_num_samples</code></strong> :&ensp;<code>Optional[Union[int, uint64]]</code>, optional</dt>
+<dd>The initial number of samples to be taken if the weight given has
+not been sampled and the assumed standard error (1) is above the
+requirement for the overall failure rate standard error of the noise
+level.
+If None, the initial_num_samples will be taken from the
+initialisation of the ImportanceSampling.
+By default None</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<pre><code>Probably a tuple containing two float64 in the format:
+(failure_rate, standard_error)
+</code></pre></div>
+</dd>
+<dt id="ismatching.ImportanceSampling.get_weights"><code class="name flex">
+<span>def <span class="ident">get_weights</span></span>(<span>self) ‑> List[Tuple[numpy.uint64, Tuple[numpy.float64, numpy.float64]]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the error weights sampled and the failure rate with the standard
+error for the failure rate for each weight.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>List[Tuple[uint64, Tuple[float64, float64]]]</code></dt>
+<dd>Each tuple is in the format:
+(weight, (failure_rate, standard_error))</dd>
+</dl></div>
+</dd>
+<dt id="ismatching.ImportanceSampling.sample_weight"><code class="name flex">
+<span>def <span class="ident">sample_weight</span></span>(<span>self, error_weight: Union[int, numpy.uint64], num_samples: Union[int, numpy.uint64]) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Takes a sampling of a particular weight and stores the result.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>error_weight</code></strong> :&ensp;<code>Union[int, uint64]</code></dt>
+<dd>The weight to be sampled.</dd>
+<dt><strong><code>num_samples</code></strong> :&ensp;<code>Union[int, uint64]</code></dt>
+<dd>The number of samples to be taken.</dd>
+</dl></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<li><code><a title="ismatching.ismatching" href="ismatching.html">ismatching.ismatching</a></code></li>
+<li><code><a title="ismatching.pyclass" href="pyclass.html">ismatching.pyclass</a></code></li>
+<li><code><a title="ismatching.pyfunctions" href="pyfunctions.html">ismatching.pyfunctions</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="ismatching.determine_logical_errors" href="#ismatching.determine_logical_errors">determine_logical_errors</a></code></li>
+<li><code><a title="ismatching.generate_errors" href="#ismatching.generate_errors">generate_errors</a></code></li>
+<li><code><a title="ismatching.monte_carlo" href="#ismatching.monte_carlo">monte_carlo</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="ismatching.ImportanceSampling" href="#ismatching.ImportanceSampling">ImportanceSampling</a></code></h4>
+<ul class="">
+<li><code><a title="ismatching.ImportanceSampling.failure_rate" href="#ismatching.ImportanceSampling.failure_rate">failure_rate</a></code></li>
+<li><code><a title="ismatching.ImportanceSampling.get_weights" href="#ismatching.ImportanceSampling.get_weights">get_weights</a></code></li>
+<li><code><a title="ismatching.ImportanceSampling.num_qubits" href="#ismatching.ImportanceSampling.num_qubits">num_qubits</a></code></li>
+<li><code><a title="ismatching.ImportanceSampling.sample_weight" href="#ismatching.ImportanceSampling.sample_weight">sample_weight</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.1</a>.</p>
+</footer>
+</body>
+</html>
