@@ -14,8 +14,8 @@ def generate_errors(
     rng_seed: Optional[int] = None, ## Up to 32 bytes
 ) -> NDArray[uint8]:
     """
-    Generates qubit errors in a binary format. X, Y, and Z errors are generated
-    with equal probability.
+    Generates qubit errors in the binary symplectic representation. X, Y, and Z
+    errors are generated with equal probability.
 
     Parameters
     ----------
@@ -157,6 +157,7 @@ def generate_syndromes(
     errors: NDArray[uint8],
     num_threads: Union[int, uintp]=0,
 )-> NDArray[uint8]:
+    # return errors @ parity_check_matrix.T
     return ismatching._generate_syndromes(parity_check_matrix, errors, num_threads)
 
 

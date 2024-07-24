@@ -170,7 +170,7 @@ class ImportanceSampling:
         self._data[uint64(0)] = _WeightSamplingEntry.zero()
 
         if distance != None:
-            for weight in range(distance//2+1):
+            for weight in range((distance-1)//2+1):
                 self._data[uint64(weight)] = _WeightSamplingEntry.zero()
 
 
