@@ -14,6 +14,8 @@ that this list is subject to change):
 - numpy
 - scipy
 
+Public api documentation can be found at
+https://cael-coonai.github.io/ISMatching/.
 
 TODO:
 - Examples
