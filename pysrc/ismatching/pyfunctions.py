@@ -158,7 +158,6 @@ def determine_logical_errors(
 def generate_syndromes(
     parity_check_matrix: Union[NDArray[uint8], csc_matrix],
     errors: NDArray[uint8],
-    num_threads: Union[int, uintp]=0,
 )-> NDArray[uint8]:
     return (errors @ parity_check_matrix.transpose()) % uint8(2)
 
@@ -240,7 +239,6 @@ def monte_carlo(
     syndromes = generate_syndromes(
         parity_check_matrix,
         errors,
-        num_threads
     )
 
     predictions = matching.decode_batch(syndromes)
