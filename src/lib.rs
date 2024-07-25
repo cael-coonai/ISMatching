@@ -1,6 +1,6 @@
 use num_bigint::BigUint;
 use pyo3::{prelude::*, Python};
-use numpy::{borrow::PyReadonlyArray2, PyArray1, PyArray2};
+use numpy::{borrow::PyReadonlyArray2, PyArray1, PyArray2, PyArray3, PyReadonlyArray1, PyReadonlyArray3};
 use anyhow::Result;
 mod functions;
 
@@ -9,22 +9,38 @@ fn _generate_errors<'py>(
     py: Python<'py>,
     num_qubits: u64,
     num_samples: u64,
-    error_rate: f64,
+    error_rates: PyReadonlyArray1<f64>,
     num_threads: usize,
-    error_weight: Option<u64>,
+    error_weights: Option<PyReadonlyArray1<u64>>,
     rng_seed: Option<BigUint>,
-) -> Result<Bound<'py, PyArray2<u8>>> {
+) -> Result<()> {
+// ) -> Result<Bound<'py, PyArray3<u8>>> {
+    println!("Start?");
     
-    let errors = functions::generate_errors(
-        num_qubits,
-        num_samples,
-        error_rate,
-        num_threads,
-        error_weight,
-        rng_seed,
-    )?;
+    let error_rates = &error_rates.as_array();
+    let errors = match error_weights {
+        Some(ws) => functions::generate_errors(
+            num_qubits,
+            num_samples,
+            error_rates,
+            num_threads,
+            Some(&ws.as_array()),
+            rng_seed,
+        )?,
+        None => functions::generate_errors(
+            num_qubits,
+            num_samples,
+            error_rates,
+            num_threads,
+            None,
+            rng_seed,
+        )?
+    };
 
-    return Ok(PyArray2::from_vec2_bound(py, &errors)?)
+    println!("Done?");
+    let temp = PyArray3::from_vec3_bound(py, &errors)?;
+    println!("Actually done.");
+    return Ok(());
 }
 
 #[pyfunction]
@@ -58,6 +74,7 @@ fn _determine_logical_errors<'py>(
 
     return Ok(PyArray1::from_vec_bound(py, failures));
 }
+
 
 #[pymodule]
 fn ismatching(m: &Bound<'_, PyModule>) -> PyResult<()> {

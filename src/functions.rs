@@ -1,4 +1,4 @@
-use ndarray::Zip;
+use ndarray::{ArrayView1, Zip};
 use num_traits::ToBytes;
 use num_bigint::BigUint;
 use numpy::ndarray::{ArrayView2, Axis};
@@ -14,12 +14,18 @@ fn thread_pool_generator(num_threads:usize) -> Result<rayon::ThreadPool> {
     Ok(pool.num_threads(num_threads).build()?)
 }
 
+// Describes how  error weights are generated for generate_error_batch()
+#[derive(Debug, Clone, Copy)]
+enum ErrorWeightSpecification {
+    Constant(u64),
+    Binomial(Binomial)
+}
+
 fn generate_error_batch(
     rng_seed: [u8;32],
     rng_stream: u64,
     batch_size: u64,
-    error_weight: Option<u64>,
-    binomial: Binomial,
+    error_weight_spec: &ErrorWeightSpecification,
     uniform: Uniform<u8>,
     num_qubits: u64,
 ) -> Vec<Vec<u8>> {
@@ -30,9 +36,10 @@ fn generate_error_batch(
     rng.set_stream(rng_stream);
 
     let batch = (0..batch_size).map(move |_| {
-        let error_weight = match error_weight {
-            Some(w) => w as usize,
-            None    => binomial.sample(&mut rng) as usize
+        let error_weight = match error_weight_spec {
+            ErrorWeightSpecification::Constant(w) => *w as usize,
+            ErrorWeightSpecification::Binomial(binom) =>
+                binom.sample(&mut rng) as usize
         };
 
         let error_indices = (0..num_qubits_usize)
@@ -61,16 +68,14 @@ fn generate_error_batch(
 pub fn generate_errors(
     num_qubits: u64,
     num_samples: u64,
-    error_rate: f64,
+    error_rates: &ArrayView1<f64>,
     num_threads: usize,
-    error_weight: Option<u64>,
+    error_weights: Option<&ArrayView1<u64>>,
     rng_seed: Option<BigUint>,
-) -> Result<Vec<Vec<u8>>> {
-
+) -> Result<Vec<Vec<Vec<u8>>>> {
     let batch_size = 10000;
     let batches = num_samples / batch_size;
     let remainder = num_samples % batch_size;
-
 
     let rng_seed = match rng_seed {
         Some(n) => {
@@ -86,43 +91,57 @@ pub fn generate_errors(
             seed
         }
     };
-
-    let binomial = Binomial::new(num_qubits as u64, error_rate)?;
-    let uniform = Uniform::from(0..=2u8);
-
-    let mut errors = generate_error_batch(
-        rng_seed,
-        0,
-        remainder,
-        error_weight,
-        binomial,
-        uniform,
-        num_qubits
-    );
-
-    thread_pool_generator(num_threads)?.install(|| {
-        errors.append(
-            &mut (1..=batches)
-                .into_par_iter()
-                .map(|batch_num|
-                    generate_error_batch(
-                        rng_seed,
-                        batch_num,
-                        batch_size,
-                        error_weight,
-                        binomial,
-                        uniform,
-                        num_qubits
-                    )
-                )
-                .reduce(
-                    || Vec::with_capacity(0),
-                    |mut a, mut b| {a.append(&mut b); a}
-                )
-        );
-    });
     
-    return Ok(errors);
+    let uniform = Uniform::from(0..=2u8);
+    let mut result: Vec<Vec<Vec<u8>>> = Vec::with_capacity(0);
+    
+    thread_pool_generator(num_threads)?.install(|| {
+        let error_specs: Vec<ErrorWeightSpecification> = match error_weights {
+            Some(ws) => ws.into_par_iter()
+            .map(|w| ErrorWeightSpecification::Constant(*w))
+            .collect(),
+            None => error_rates.into_par_iter()
+            .map(|r| ErrorWeightSpecification::Binomial(
+                Binomial::new(num_qubits as u64, *r).unwrap()
+            ))
+            .collect()
+        };
+        
+        result = error_specs.iter().map(|error_spec| {
+            let mut errors = generate_error_batch(
+                rng_seed,
+                0,
+                remainder,
+                error_spec,
+                uniform,
+                num_qubits
+            );
+                
+            errors.append(
+                &mut (1..=batches)
+                    .into_par_iter()
+                    .map(|batch_num|
+                        generate_error_batch(
+                            rng_seed,
+                            batch_num,
+                            batch_size,
+                            error_spec,
+                            uniform,
+                            num_qubits
+                        )
+                    )
+                    .reduce(
+                        || Vec::with_capacity(0),
+                        |mut a, mut b| {a.append(&mut b); a}
+                    )
+            );
+            println!("{:?}",error_spec);
+            errors
+        })
+        .collect()
+    });
+
+    return Ok(result);
 }
 
 pub fn generate_syndromes(

@@ -2,16 +2,16 @@ from ismatching import ismatching # Rust Functions
 from numpy.typing import NDArray
 import numpy as np
 from scipy.sparse import csc_matrix
-from numpy import int64, uint8, uint64, float64, uintp
+from numpy import int64, ndarray, uint8, uint64, float64, uintp
 from typing import Dict, List, Optional, Tuple, Union
 from pymatching import Matching
 
 def generate_errors(
     num_qubits: Union[int, uint64],
     num_samples: Union[int, uint64] = 1,
-    noise_level: Union[float, float64] = 0.5,
+    noise_level: Union[float, float64, list[float], NDArray[float64]] = 0.5,
     num_threads: Union[int, uintp] = 0,
-    error_weight: Optional[Union[int, uint64]] = None,
+    error_weight: Optional[Union[int, uint64, list[int], NDArray[uint64]]] = None,
     rng_seed: Optional[int] = None, ## Up to 32 bytes
 ) -> NDArray[uint8]:
     """
@@ -52,6 +52,9 @@ def generate_errors(
         of each row contains the Z error on each qubit and the second half
         contains the X error.
     """
+    noise_level = np.array(noise_level, dtype=float64).reshape(-1)
+    if not error_weight is None:
+        error_weight = np.array(noise_level, dtype=uint64).reshape(-1)
     
     return ismatching._generate_errors(
         num_qubits,
