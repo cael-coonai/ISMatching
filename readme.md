@@ -1,7 +1,7 @@
 This project is in rapid active development, I apologise if things don't work/run.
 
-Feel free to submit a bug report or suggestions by stopping by my desk or
-messaging me on Slack.
+Feel free to submit a bug report or suggestions by stopping by messaging me on
+Slack, I'm not currently looking at GitHub issues.
 
 Python Code is in pysrc/ismatching
 
