@@ -211,7 +211,6 @@ class ImportanceSampling:
         syndromes = functions.generate_syndromes(
             self._parity_check_matrix,
             errors,
-            self._num_threads,
         )
 
         predictions = self._matching.decode_batch(syndromes)

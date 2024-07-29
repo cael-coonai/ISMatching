@@ -6,6 +6,7 @@ from numpy import int64, uint8, uint64, float64, uintp
 from typing import Dict, List, Optional, Tuple, Union
 from pymatching import Matching
 
+
 def generate_errors(
     num_qubits: Union[int, uint64],
     num_samples: Union[int, uint64] = 1,
@@ -52,7 +53,7 @@ def generate_errors(
         of each row contains the Z error on each qubit and the second half
         contains the X error.
     """
-    
+
     return ismatching._generate_errors(
         num_qubits,
         num_samples,
