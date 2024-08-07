@@ -7,6 +7,84 @@ use rand_chacha::ChaCha8Rng;
 use rand_distr::{Binomial, Distribution, Uniform};
 use rayon::prelude::*;
 use anyhow::Result;
+use crate::StabiliserSet;
+
+#[derive(Clone)]
+struct GeneratorSelector {
+    selection: Vec<bool>
+}
+
+impl GeneratorSelector {
+    pub fn new(num_generators: usize) -> GeneratorSelector {
+        GeneratorSelector {selection: vec![false; num_generators]}
+    }
+
+    fn is_all_false(&self) -> bool {
+        for generator in &self.selection {
+            if *generator == true {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    fn increment(&mut self) {
+        let mut carry = true;
+        for idx in 0..self.selection.len() {
+            self.selection[idx] ^= carry;
+            carry ^= self.selection[idx];
+            if carry == false {
+                return;
+            }
+        }
+    }
+}
+
+impl std::iter::Iterator for GeneratorSelector {
+    type Item = Vec<bool>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.is_all_false() {
+            return None;
+        }
+        let result = self.selection.clone();
+        self.increment();
+        return Some(result);
+    }
+}
+
+impl StabiliserSet {
+
+    pub fn from_parity_check(check_matrix:& Vec<Vec<u8>>) -> StabiliserSet {
+        let num_generators = check_matrix.len();
+        // let mut set = HashSet::new();
+        let mut generator_selector = GeneratorSelector::new(num_generators);
+        generator_selector.increment();
+        
+        // if check_matrix.len() > 0 {
+        //     set.insert(vec![0; check_matrix[0].len()]);
+        // }
+
+        let set = generator_selector.par_bridge()
+            .map(|selection| {
+                let sum = selection.iter()
+                .zip(check_matrix.iter())
+                .filter(|(is_selected,_)| **is_selected)
+                .map(|(_, generator)| generator.clone())
+                .reduce(|mut sum, stabiliser| {
+                    for idx in 0..sum.len() {
+                        sum[idx] ^= stabiliser[idx]
+                    }
+                    sum
+                })
+                .unwrap();
+                sum
+            })
+            .collect::<HashSet<Vec<u8>>>();          
+
+        StabiliserSet { set }
+    }
+}
 
 fn thread_pool_generator(num_threads:usize) -> Result<rayon::ThreadPool> {
     let num_threads = if num_threads == 0 {num_cpus::get()} else {num_threads};

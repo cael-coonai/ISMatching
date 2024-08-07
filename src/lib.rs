@@ -4,6 +4,11 @@ use numpy::{borrow::PyReadonlyArray2, PyArray1, PyArray2};
 use anyhow::Result;
 mod functions;
 
+#[pyclass]
+struct StabiliserSet {
+    set: HashSet<Vec<u8>>
+}
+
 #[pyfunction]
 fn _generate_errors<'py>(
     py: Python<'py>,
