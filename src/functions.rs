@@ -9,6 +9,45 @@ use rayon::prelude::*;
 use anyhow::Result;
 use crate::StabiliserSet;
 
+struct PackedBits(Vec<u8>);
+
+impl PackedBits {
+    pub fn pack(unpacked_bits: Vec<u8>) -> PackedBits {
+        let packed_len = unpacked_bits.len().div_ceil(8);
+        let mut result = vec![0; packed_len];
+        let mut bit_iter = unpacked_bits.iter();
+        for idx in 0..packed_len {
+            let mut byte = 0u8;
+            for bit_val in 0..=7 {
+                byte |= bit_iter.next().unwrap_or(&0) << bit_val;
+            }
+            result[idx] = byte;
+        }
+        PackedBits(result)
+    }
+
+    pub fn unpack(self) -> Vec<u8> {
+        let unpacked_len = self.0.len() * 8;
+        let mut result = vec![0; unpacked_len];
+        for idx in 0..self.0.len() {
+            let mut byte = self.0[idx];
+            for offset in 0..=7 {
+                result[idx*8 + offset] = byte & 1;
+                byte >>= 1;
+            }
+        }
+        result
+    }
+
+    pub fn as_packed_bits(packed_bits: Vec<u8>) -> PackedBits {
+        PackedBits(packed_bits)
+    }
+
+    pub fn as_u8(self) -> Vec<u8> {
+        self.0
+    }
+}
+
 #[derive(Clone)]
 struct GeneratorSelector {
     selection: Vec<bool>
@@ -264,4 +303,49 @@ pub fn determine_logical_errors(
     });
 
     Ok(failures)
+}
+
+#[test]
+fn pack_and_unpack_bits() {
+    let unpacked = [
+        vec![1,1,1,1,1,1,1,1],
+        vec![0,0,0,0,0,0,0,0],
+        vec![1,0,0,1,1,1,1,0],
+        vec![0,1,0,0,1,1,0,1],
+        vec![1,0,1],
+        vec![0,1,0,1],
+        vec![1,0,1,0],
+        vec![1,1,0,0,0,0,0,0,0,0,1,0,1,1],
+        vec![0,1,1,1,1,0,1,1,0,1,0,0,0,1,0,1,1,1,0,1,1,1,0,1,0,1,0],
+    ];
+    let unpacked_padded = [
+        vec![1,1,1,1,1,1,1,1],
+        vec![0,0,0,0,0,0,0,0],
+        vec![1,0,0,1,1,1,1,0],
+        vec![0,1,0,0,1,1,0,1],
+        vec![1,0,1,0,0,0,0,0],
+        vec![0,1,0,1,0,0,0,0],
+        vec![1,0,1,0,0,0,0,0],
+        vec![1,1,0,0,0,0,0,0,0,0,1,0,1,1,0,0],
+        vec![0,1,1,1,1,0,1,1,0,1,0,0,0,1,0,1,1,1,0,1,1,1,0,1,0,1,0,0,0,0,0,0],
+    ];
+    let packed_val = [
+        vec![255u8],
+        vec![0],
+        vec![121],
+        vec![178],
+        vec![5],
+        vec![10],
+        vec![5],
+        vec![3,52],
+        vec![222,162,187,2]
+    ];
+
+    for idx in 0..unpacked.len() {
+        let pack = PackedBits::pack(unpacked[idx].clone());
+        let reading = pack.as_u8();
+        assert_eq!(packed_val[idx], reading);
+        let unpack = PackedBits::as_packed_bits(reading).unpack();
+        assert_eq!(unpacked_padded[idx], unpack);
+    }
 }
